@@ -1,0 +1,14 @@
+body {
+  min-width: 1300px;
+  background-color: gray;
+  overflow: hidden;
+	text-align: center;
+}
+body.light {
+  background-color: rgb(232, 232, 232);
+  color: #333;
+}
+canvas {
+  margin: 50px 50px 0;
+  border: 0px;
+}

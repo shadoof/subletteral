@@ -566,37 +566,6 @@ function setLeading(fs) {
   return fs + Math.ceil(fs / 3);
 }
 
-// function changeStatus(newStatus, feedback) {
-//   feedback = feedback || false;
-//   switch (newStatus) {
-//   case "next":
-//     // scIndex++;
-//     bumpPhase(1);
-//     break;
-//   case "previous":
-//     bumpPhase(-1);
-//     // scIndex--;
-//     // if (scIndex < 3) scIndex = 0;
-//     break;
-//   case "quit":
-//     // scIndex = 6;
-//   }
-  // if (scIndex > 6) scIndex = 6;
-  // if (scIndex < 0) scIndex = 0;
-  // let newStatusCap = statusCaptions[scIndex];
-  // if (scIndex == 3) {
-  //   if (firstGasp) {
-  //     firstGasp = false;
-  //     // newStatusCap += " to open";
-  //   }
-  // }
-  // phase = scIndex - 2;
-  // if (phase < 0) phase = 0;
-  // setStatusCaption(newStatusCap);
-  // if (feedback) showStatusUntil = millis() + 3000;
-//   return newStatus;
-// }
-
 function bumpPhase(direction) {
   info("bump " + direction)
   phase.subphase[phase.value].value += direction;

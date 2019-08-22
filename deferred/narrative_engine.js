@@ -2,7 +2,7 @@
 // deferred, by John Cayley
 // adapted from subliteral
 // configuration
-var VERSION = "0.3.0"; //
+var VERSION = "0.3.2"; //
 var IVORY_ON_BLACK = true, DBUG = false, INFO = true;
 var BLACK = [0, 0, 0, 255];
 var IVORY = [255, 255, 240, 255];
@@ -367,7 +367,7 @@ async function spellTheStories(stories, mode, fadeSeconds = 3, iterations = 1) {
     await cleanUp();
     await sleep(3);
   } // for stories loop
-  return new Promise(resolve => resolve(INFO ? info("a round of stories completed ..") : "one round of stories"));
+  return new Promise(resolve => resolve(INFO ? info("a round of stories COMPLETED ..") : "one round of stories"));
 }
 
 function spellStory(mode, storySeconds, fadeSeconds, iterations) {
@@ -405,15 +405,34 @@ async function shuffledFades(storySeconds, fadeSeconds, iterations) {
       // if (DBUG)
       //   dbug(rts[j].text().valueOf() + " " + testAgainst + " " + (rts[j].text().valueOf() != testAgainst));
       // wd = RiTa.trimPunctuation(rts[j].text());
-      // only change a differing word one third of the time
-      if (rts[j].text() != testAgainst && (getRndInteger(0,2) > 0)) {
+      // only change a differing word three out of four times
+      if (rts[j].text() != testAgainst && (getRndInteger(0,3) > 0)) {
         if (DBUG) dbug(rts[j].text() + "@" + j + " --> " + testAgainst);
         textTo(rts[j], testAgainst, fadeSeconds);
+        // literary tweak:
+        let tweakedIndex = -1, tweakTo;
+        switch (testAgainst) {
+          case "road":
+            tweakedIndex = (rts[j+1].text() == "it") ? (j+1) : tweakedIndex;
+            tweakedIndex = (rts[j-1].text() == "it") ? (j-1) : tweakedIndex;
+            tweakTo = "if";
+            break;
+          case "it":
+            tweakedIndex = (rts[j+1].text() == "road") ? (j+1) : tweakedIndex;
+            tweakedIndex = (rts[j-1].text() == "road") ? (j-1) : tweakedIndex;
+            tweakTo = "read";
+            break;
+        }
+        if (tweakedIndex > 0) {
+          textTo(rts[tweakedIndex], tweakTo, fadeSeconds);
+        }
+        // end literary tweak
         if (keyIsDown(RIGHT_ARROW) !== true) await sleep(storySeconds / tokens.length * 1.5);
       } else {
         if (DBUG) dbug("keeping " + rts[j].text() + "@" + j);
         continue;
       }
+      if (DBUG) dbug("at " + t + " of " + tokens.length);
       if (standingOrder != "continue" && standingOrder != "pressing") {
         // make sure concurrent Promises resolve
         keyLock = true;
@@ -429,11 +448,11 @@ async function shuffledFades(storySeconds, fadeSeconds, iterations) {
     // if (keyIsDown(RIGHT_ARROW))
     //   break;
     await sleep(fadeSeconds * 1.5); // storySeconds / 5);
-    if (INFO) info("iteration completed");
+    if (INFO) info("iteration COMPLETED");
     sublit = !sublit;
   }
   bumpPhase(1);
-  if (INFO) info("shuffledFades complete");
+  if (INFO) info("shuffledFades COMPLETED");
 }
 
 async function sequentialFades(storySeconds, fadeSeconds, iterations) {
@@ -465,7 +484,7 @@ async function sequentialFades(storySeconds, fadeSeconds, iterations) {
     sublit = !sublit;
   }
   bumpPhase(1);
-  if (INFO) info("sequentialFades complete");
+  if (INFO) info("sequentialFades COMPLETED");
 }
 
 async function pairsOnlySequentialFades(seconds, iterations) {
@@ -694,7 +713,7 @@ async function cleanUp() {
   RiText.dispose(rts);
   xPos = STORY_X;
   yPos = STORY_Y;
-  return new Promise(resolve => resolve(INFO ? info("cleanUp done") : "cleanUp done"));
+  return new Promise(resolve => resolve(INFO ? info("cleanUp DONE") : "cleanUp DONE"));
 }
 
 // UNUSED speccial multiFont titles (because fontSize not working)

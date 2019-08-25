@@ -2,7 +2,7 @@
 // deferred, by John Cayley
 // adapted from subliteral
 // configuration
-var VERSION = "0.3.2"; //
+var VERSION = "0.4.1"; // tweaked for pairs always opposed
 var IVORY_ON_BLACK = true, DBUG = false, INFO = true;
 var BLACK = [0, 0, 0, 255];
 var IVORY = [255, 255, 240, 255];
@@ -405,28 +405,36 @@ async function shuffledFades(storySeconds, fadeSeconds, iterations) {
       // if (DBUG)
       //   dbug(rts[j].text().valueOf() + " " + testAgainst + " " + (rts[j].text().valueOf() != testAgainst));
       // wd = RiTa.trimPunctuation(rts[j].text());
-      // only change a differing word three out of four times
-      if (rts[j].text() != testAgainst && (getRndInteger(0,3) > 0)) {
+      // to only change a differing word three out of four times, add:
+      //  && (getRndInteger(0,3) > 0)
+      if (rts[j].text() != testAgainst) {
         if (DBUG) dbug(rts[j].text() + "@" + j + " --> " + testAgainst);
         textTo(rts[j], testAgainst, fadeSeconds);
-        // literary tweak:
-        let tweakedIndex = -1, tweakTo;
-        switch (testAgainst) {
-          case "road":
-            tweakedIndex = (rts[j+1].text() == "it") ? (j+1) : tweakedIndex;
-            tweakedIndex = (rts[j-1].text() == "it") ? (j-1) : tweakedIndex;
-            tweakTo = "if";
-            break;
-          case "it":
-            tweakedIndex = (rts[j+1].text() == "road") ? (j+1) : tweakedIndex;
-            tweakedIndex = (rts[j-1].text() == "road") ? (j-1) : tweakedIndex;
-            tweakTo = "read";
-            break;
+        // first literary tweak - opposite numbers always different:
+        let middle = tokens.length / 2;
+        let oppositeNumber = j < middle ? tokens.length - j - 1 : middle - (j - middle) - 1 ;
+        if (testAgainst == rts[oppositeNumber].text()) {
+          textTo(rts[oppositeNumber], (sublit ? tokens[j] : tokens_sublit[j]), fadeSeconds);
         }
-        if (tweakedIndex > 0) {
-          textTo(rts[tweakedIndex], tweakTo, fadeSeconds);
-        }
-        // end literary tweak
+        // second literary tweak no longer necessary after 0.4.1
+        // because "read" is used in both main and 'sublit' text:
+        // let tweakedIndex = -1, tweakTo;
+        // switch (testAgainst) {
+        //   case "road":
+        //     tweakedIndex = (rts[j+1].text() == "it") ? (j+1) : tweakedIndex;
+        //     tweakedIndex = (rts[j-1].text() == "it") ? (j-1) : tweakedIndex;
+        //     tweakTo = "if";
+        //     break;
+        //   case "it":
+        //     tweakedIndex = (rts[j+1].text() == "road") ? (j+1) : tweakedIndex;
+        //     tweakedIndex = (rts[j-1].text() == "road") ? (j-1) : tweakedIndex;
+        //     tweakTo = "read";
+        //     break;
+        // }
+        // if (tweakedIndex > 0) {
+        //   textTo(rts[tweakedIndex], tweakTo, fadeSeconds);
+        // }
+        // END literary tweaks
         if (keyIsDown(RIGHT_ARROW) !== true) await sleep(storySeconds / tokens.length * 1.5);
       } else {
         if (DBUG) dbug("keeping " + rts[j].text() + "@" + j);

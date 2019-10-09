@@ -2,10 +2,10 @@
 // deferred, by John Cayley
 // adapted from subliteral
 // configuration
-var VERSION = "0.4.1"; // tweaked for pairs always opposed
-var IVORY_ON_BLACK = true, DBUG = false, INFO = true;
-var BLACK = [0, 0, 0, 255];
-var IVORY = [255, 255, 240, 255];
+var VERSION = "0.4.2"; // for wall-mounted tablets
+var IVORY_ON_BLACK = false, DBUG = false, INFO = true;
+var BLACK = [32, 32, 32, 255];
+var IVORY = [240, 240, 230, 255];
 var FILL;
 var BACKGROUND;
 var FLOATING = 0, SURFACING = 1, SINKING = 2;
@@ -22,14 +22,20 @@ var WIDTH = 1080, HEIGHT = 1920;
 // var R_MARGIN = 960;
 // var STORY_X = 220, STORY_Y = 160;
 var T_MARGIN = 100;
-// var L_MARGIN = 180, R_MARGIN = 1020;
-var STORY_X = 50, STORY_Y = 72; // X: 320 / 32
 //
 var TITLES_FONT_SIZE = 28;
-var STORY_FONT_SIZE = 70;
+var STORY_FONT_SIZE = 82; // was 70
+var STORY_LDFACTOR = 1.5; // default is 1.3 in function
 var fontSize, fontWidth, leading; // font size, font (one char) width, leading;
 // fontSize = TITLES_FONT_SIZE;
 // leading = setLeading(fontSize);
+// var L_MARGIN = 180, R_MARGIN = 1020;
+var STORY_X = 240, STORY_Y = STORY_FONT_SIZE + 100; // X: 320 / 32
+if (LANDSCAPE == true) {
+  WIDTH = 1920, HEIGHT = 1080;
+  STORY_FONT_SIZE = 70; // was 70
+  STORY_X = 80, STORY_Y = STORY_FONT_SIZE + 240;
+}
 var xPos = STORY_X, yPos = STORY_Y;
 var story;
 var tokens = [], tokens_sublit = [];
@@ -136,7 +142,7 @@ async function setup() {
   titles.push("s u b l i t e r a l   p o e t i c s");
   titles.push("deferred lest meaning hoard solidity");
   titles.push("John Cayley, 2019");
-  titles.push("ambient version for Poesis, Kassel");
+  titles.push("for wall-mounted tablets");
   titles.push(" –> or mobile swipe-left to move on");
   titles.push("<– or mobile swipe-right to go back");
   titles.push("Q or mobile two-finger swipe-left to quit abruptly");
@@ -272,7 +278,7 @@ async function narrativeTitles() {
   }
 
   resetPhase(1);
-  fontSize = setFont(storyFont, STORY_FONT_SIZE, 1.75);
+  fontSize = setFont(storyFont, STORY_FONT_SIZE, STORY_LDFACTOR);
   // TODO: RiText.defaultFontSize(FONT_SIZE);
   standingOrder = "continue";
 }

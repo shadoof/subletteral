@@ -3,8 +3,8 @@
 // adapted from subliteral
 // configuration
 var VERSION = "0.4.2"; // for wall-mounted tablets
-var IVORY_ON_BLACK = false, DBUG = false, INFO = true;
-var BLACK = [32, 32, 32, 255];
+var IVORY_ON_BLACK = true, DBUG = false, INFO = true;
+var BLACK = [0, 0, 0, 255]; // also tested: [32, 32, 32, 255];
 var IVORY = [240, 240, 230, 255];
 var FILL;
 var BACKGROUND;

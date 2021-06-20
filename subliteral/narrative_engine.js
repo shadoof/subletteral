@@ -1,9 +1,10 @@
 /* globals RiText, Hammer, RiTa, stories, pairs */
 // subliteral, by John Cayley
 // configuration
-var VERSION = "0.3.2";
+var VERSION = "1.0a";
 // 0.3 configurable for multi-tablet exhibition
 // 0.3.1 even better handling of keypress interruption
+// 1.0.1 numbers to move to particular story and BRD upload
 var FULL_PATH = "https://programmatology.shadoof.net/ritajs/subliteral/"
 var IVORY_ON_BLACK = true, DBUG = false, INFO = true;
 var BLACK = [0, 0, 0, 255];
@@ -51,7 +52,9 @@ if (SL_EXHIBITION) {
 }
 var xPos = STORY_X, yPos = STORY_Y;
 // var fontSize = STORY_FONT_SIZE, fontWidth; // font size, font (one char) width, leading;
-var story;
+var story, storyNum;
+var storyKeys = ["lascaux","ars","murder","mars","order","noir"];
+var titleTime = true;
 var tokens = [], tokens_sublit = [];
 var rts = [];
 var rtTitle = [], titleY = STORY_TITLE_Y;
@@ -156,13 +159,16 @@ async function setup() {
   fontSize = setFont(storyFont, TITLES_FONT_SIZE);
 
   titles.push("hearing litoral voices / bearing literal traces");
-  titles.push("vi  S U B L I T E R A L   N A R R A T I V E S");
+  titles.push("s i x   S U B L I T E R A L   N A R R A T I V E S");
   titles.push("Joanna Howard & John Cayley, 2019");
   titles.push("narrative & ambient poetics");
   titles.push(" –> or mobile swipe-left to move on");
   titles.push("<– or mobile swipe-right to go back");
+  titles.push("hold shift or mobile press for status caption");
+  titles.push("type number keys mid-story to choose:");
+  titles.push("1- lascaux, 2- ars, 3- murder, 4- mars, 5- order, 6- noir");
   titles.push("Q or mobile two-finger swipe-left to quit abruptly");
-  titles.push(VERSION + " with thanks to Daniel C. Howe’s RiTa");
+  titles.push("v. " + VERSION + " with thanks to Daniel C. Howe’s RiTa");
   titles.push("programmatology.shadoof.net/?subliteral");
 
   titlePassage = new Passage();
@@ -180,11 +186,9 @@ async function setup() {
     titlePassage.display[i].fadeFrom = titlePassage.display[i].copy();
     titlePassage.display[i].fadeFrom.alpha(0);
     switch (i) {
-    case 0: lineY += leading * .5; break;
     case 1: lineY += leading * .5; break;
-    case 2: lineY += leading * .5; break;
     case 3: lineY += leading * .5; break;
-    case 6: lineY += leading * .5; break;
+    case 9: lineY += leading * .5; break;
     }
     lineY += leading;
   }
@@ -257,6 +261,7 @@ async function narrate() {
 
 async function narrativeTitles() {
   // RiText.dispose(rts);
+  titleTime = true;
   await cleanUp();
   setStatusCaption("[titles]");
   // make titles are visible and full of spaces
@@ -321,85 +326,103 @@ async function spellTheStories(stories, mode, fadeSeconds = 3, iterations = 1) {
     }
     stories = { "tabletStory": stories[key] };
   }
+
   if (DBUG) console.log(stories);
-  let storyNum = 0;
-  for (var key in stories) {
-    setStatusCaption("[narrative " + (++storyNum) + " of " + Object.keys(stories).length + "]");
-    story = stories[key];
-    if (INFO) info("story is: " + key);
-    // display the title; special treatment for "ars":
-    if (SHOW_INTERTITLES) {
-      // if (DBUG) dbug("key: " + key + " " + (key == "ars"));
-      titleY = STORY_TITLE_Y;
-      leading = setLeading(TITLES_FONT_SIZE);
-      for (let i = 0; i < story.title.length; i++) {
-        rtTitle[i] = new RiText(story.title[i], STORY_TITLE_X, titleY, titleFont);
-        rtTitle[i].fill(BACKGROUND);
-        rtTitle[i].colorTo(FILL, 3);
-        titleY += leading;
-      }
-      if (DBUG) dbug("tseconds: " + story.tseconds);
-
-      try { await doze(story.tseconds) } catch(err) {
-        if (err.message != "next") {
-          for (let rt of rtTitle) {
-            RiText.dispose(rt);
-          }
-          return Promise.reject(err);
-        } else standingOrder = "continue";
-      }
-
-      // for (let i = 0; i < story.tseconds; i++) {
-      //   await sleep(1);
-      //   if (standingOrder == "next") {
-      //     standingOrder = "continue";
-      //     break;
-      //   } else if (standingOrder != "continue" && standingOrder != "pressing") {
-      //     for (let rt of rtTitle) {
-      //       RiText.dispose(rt);
-      //     }
-      //     return Promise.reject(new Error(standingOrder));
-      //   }
-      // }
-      for (let i = 0; i < story.title.length; i++) {
-        rtTitle[i].colorTo(BACKGROUND,2);
-      }
-      await sleep(2.5);
-      for (let i = 0; i < story.title.length; i++) {
-        RiText.dispose(rtTitle[i]);
-      }
-    } else if (SL_EXHIBITION) {
-      titleText = story.exhibTitle[0];
-      SHOW_CAPTIONTTITLES = true;
-      info(titleText + " " + SHOW_CAPTIONTTITLES);
-    }
-    // end of story title display
-
-    // now, the story itself
-    // RiText.defaultFont(monoFont, STORY_FONT_SIZE);
-    // RiText.defaultFontSize(STORY_FONT_SIZE);
-    tokens = buildTokens(story, false);
-    tokens_sublit = buildTokens(story, true);
-    rts = await(layoutStory(story.text));
-    await fadeIn(rts);
+  for (storyNum = 0; storyNum < 6; storyNum++) {
+    key = storyKeys[storyNum];
     try {
-      await spellStory(mode, story.seconds, fadeSeconds, iterations);
+      await spellTitleAndStory(key, mode, fadeSeconds, iterations);
     } catch (err) {
       if (err.message == "next") {
         standingOrder = "continue";
         await cleanUp();
         // await sleep(3);
-        continue; // to top of for loop
+        return; // was: continue; // to top of for loop
       } else return Promise.reject(err);
-      // standingOrder = handleInterruption(err.message);
-      // if (standingOrder != "continue")
-      //   return Promise.reject(new Error(standingOrder));
     }
-    await cleanUp();
-    if (DBUG) dbug("waited to cleanUp ...");
-    // await sleep(3);
-  } // for stories loop
+  }
+  // for (var key in stories) {
+  // } // for stories loop
   return new Promise(resolve => resolve(INFO ? info("a round of stories completed ..") : "one round of stories"));
+}
+
+async function spellTitleAndStory(key, mode, fadeSeconds, iterations) {
+  story = stories[key];
+  setStatusCaption("[narrative " + (storyNum + 1) + " of " + Object.keys(stories).length + "]");
+  if (INFO) info("story is: " + key);
+  // display the title; special treatment for "ars":
+  if (SHOW_INTERTITLES) {
+    titleTime = true;
+    // if (DBUG) dbug("key: " + key + " " + (key == "ars"));
+    titleY = STORY_TITLE_Y;
+    leading = setLeading(TITLES_FONT_SIZE);
+    for (let i = 0; i < story.title.length; i++) {
+      rtTitle[i] = new RiText(story.title[i], STORY_TITLE_X, titleY, titleFont);
+      rtTitle[i].fill(BACKGROUND);
+      rtTitle[i].colorTo(FILL, 3);
+      titleY += leading;
+    }
+    if (DBUG) dbug("tseconds: " + story.tseconds);
+
+    try { await doze(story.tseconds) } catch(err) {
+      if (err.message != "next") {
+        for (let rt of rtTitle) {
+          RiText.dispose(rt);
+        }
+        return Promise.reject(err);
+      } else standingOrder = "continue";
+    }
+
+    // for (let i = 0; i < story.tseconds; i++) {
+    //   await sleep(1);
+    //   if (standingOrder == "next") {
+    //     standingOrder = "continue";
+    //     break;
+    //   } else if (standingOrder != "continue" && standingOrder != "pressing") {
+    //     for (let rt of rtTitle) {
+    //       RiText.dispose(rt);
+    //     }
+    //     return Promise.reject(new Error(standingOrder));
+    //   }
+    // }
+    for (let i = 0; i < story.title.length; i++) {
+      rtTitle[i].colorTo(BACKGROUND,2);
+    }
+    await sleep(2.5);
+    for (let i = 0; i < story.title.length; i++) {
+      RiText.dispose(rtTitle[i]);
+    }
+  } else if (SL_EXHIBITION) {
+    titleText = story.exhibTitle[0];
+    SHOW_CAPTIONTTITLES = true;
+    info(titleText + " " + SHOW_CAPTIONTTITLES);
+  }
+  // end of story title display
+
+  // now, the story itself
+  // RiText.defaultFont(monoFont, STORY_FONT_SIZE);
+  // RiText.defaultFontSize(STORY_FONT_SIZE);
+  titleTime = false;
+  tokens = buildTokens(story, false);
+  tokens_sublit = buildTokens(story, true);
+  rts = await(layoutStory(story.text));
+  await fadeIn(rts);
+  try {
+    await spellStory(mode, story.seconds, fadeSeconds, iterations);
+  } catch (err) {
+    if (err.message == "next") {
+      standingOrder = "continue";
+      await cleanUp();
+      // await sleep(3);
+      return; // was: continue; // to top of for loop
+    } else return Promise.reject(err);
+    // standingOrder = handleInterruption(err.message);
+    // if (standingOrder != "continue")
+    //   return Promise.reject(new Error(standingOrder));
+  }
+  await cleanUp();
+  if (DBUG) dbug("waited to cleanUp ...");
+  // await sleep(3);
 }
 
 function spellStory(mode, storySeconds, fadeSeconds, iterations) {
@@ -571,6 +594,14 @@ function handleInterruption(interruptError, fb = true) {
 function keyPressed() {
   info("---- key press ----");
   // feedback = true;
+  // respond to 1-6 digit keypress:
+  if (phase > 0 && keyCode > 48 && keyCode < 55 && !titleTime) {
+    storyNum = keyCode - 50;
+    // the range now -1 to 4 because storyNum
+    // will be incremented by the for statement
+    info("story: " + storyNum);
+    standingOrder = "next";
+  }
   switch (keyCode) {
   // case 32: // space
   //   standingOrder = handleInterruption("continue", true);
